@@ -1,0 +1,31 @@
+Train on 2175 samples, validate on 543 samples
+Epoch 1/2
+1s - loss: 0.2074 - val_loss: 0.1417
+Epoch 2/2
+1s - loss: 0.1039 - val_loss: 0.1346
+1) Validation RMSE: 0.021
+       l1 0.00,l2 0.00 [5 neurons] [2 epochs]
+count                                1.000000
+mean                                 0.020968
+std                                       NaN
+min                                  0.020968
+25%                                  0.020968
+50%                                  0.020968
+75%                                  0.020968
+max                                  0.020968
+ Selecting model l1 0.00,l2 0.00 [5 neurons] [2 epochs] based on smallest mean of validation RMSE. Out of: <built-in method keys of dict object at 0x127198c60>
+Percent correct 0.00_sigma: 51.8382352941 %
+percentage of periods betting up 0.00_sigma: 20.2205882353 %; percentage of periods betting down: 0.00_sigma  79.7794117647 %; percentage of periods staying out of the market: 0.00_sigma  0.0 %
+There were 633 total trades for 0.00_sigma.
+Percent correct 0.25_sigma: 52.056641942 %
+percentage of periods betting up 0.25_sigma: 17.0955882353 %; percentage of periods betting down: 0.25_sigma  73.7745098039 %; percentage of periods staying out of the market: 0.25_sigma  9.12990196078 %
+There were 740 total trades for 0.25_sigma.
+Percent correct 0.50_sigma: 52.5227460711 %
+percentage of periods betting up 0.50_sigma: 10.9681372549 %; percentage of periods betting down: 0.50_sigma  63.112745098 %; percentage of periods staying out of the market: 0.50_sigma  25.9191176471 %
+There were 813 total trades for 0.50_sigma.
+Percent correct 1.00_sigma: 49.6327387198 %
+percentage of periods betting up 1.00_sigma: 0.30637254902 %; percentage of periods betting down: 1.00_sigma  58.0882352941 %; percentage of periods staying out of the market: 1.00_sigma  41.6053921569 %
+There were 682 total trades for 1.00_sigma.
+Percent correct 2.00_sigma: 56.6037735849 %
+percentage of periods betting up 2.00_sigma: 0.0 %; percentage of periods betting down: 2.00_sigma  19.4852941176 %; percentage of periods staying out of the market: 2.00_sigma  80.5147058824 %
+There were 588 total trades for 2.00_sigma.
