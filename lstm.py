@@ -16,6 +16,7 @@ from keras.callbacks import EarlyStopping
 from sklearn.pipeline import make_pipeline
 from keras.regularizers import L1L2
 import matplotlib.pyplot as plt
+from keras import optimizers
 
 np.random.seed(777)
 
@@ -104,7 +105,7 @@ def fit_lstm(train, val_X, val_y, n_batch, n_epochs, n_neurons, n_lags,n_feature
     # design network
     model = Sequential()
     model.add(LSTM(500, activation='sigmoid',inner_activation='sigmoid', input_shape=(train_X.shape[1], train_X.shape[2]), kernel_regularizer=reg))
-    model.add(Dropout(0.3))
+    model.add(Dropout(0.2))
     # You may add further layers
     #model.add(Dense(25,activation='relu'))
     #model.add(Dropout(0.5))
@@ -113,7 +114,8 @@ def fit_lstm(train, val_X, val_y, n_batch, n_epochs, n_neurons, n_lags,n_feature
     #model.add(Dense(5,activation='tanh'))
     #model.add(Dropout(0.5))
     model.add(Dense(1))
-    model.compile(loss='mean_squared_error', optimizer='adam')
+    adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.01)
+    model.compile(loss='mean_squared_error', optimizer=adam)
     history = model.fit(train_X, train_y, epochs=n_epochs,
                   validation_data=(val_X, val_y),
                   batch_size=n_batch, 
@@ -225,6 +227,8 @@ def equity_curve(dataset, threshold = [0, 0.25, 0.5, 1 ,2] ):
             dataset['trade_%.2f_sigma' %i]= (dataset['signal_%.2f_sigma' %i].shift(1)!=dataset['signal_%.2f_sigma' %i]).astype(int)
             total_trades = dataset['trade_%.2f_sigma' %i].sum()
             print('There were %s total trades for %.2f_sigma.' %(total_trades, i))
+            print('The annualised_sharpe for %.2f_sigma. is: %.2f.' %(i, annualised_sharpe(dataset['trade_result_%.2f_sigma' %i])))
+            print('The CAGR for %.2f_sigma. is: %.2f percent.' %(i, annual_return(dataset['equity_curve_%.2f_sigma' %i])*100))
     # For reference, plot the asset price curve
     ((dataset[1]+1).cumprod()).plot()
     plt.title('Asset price series')
@@ -232,5 +236,17 @@ def equity_curve(dataset, threshold = [0, 0.25, 0.5, 1 ,2] ):
     plt.close() 
     return dataset
 
+def annualised_sharpe(returns):
+    '''
+    Assumes daily returns are supplied. If not change periods in year.
+    '''
+    
+    periods_in_year = 252
+    return np.sqrt(periods_in_year) * returns.mean() / returns.std()
+
+def annual_return(equity_curve):
+    periods_in_year = 252
+    return equity_curve.values[-1]**(periods_in_year/len(equity_curve))-1
+    
 
         
