@@ -97,15 +97,15 @@ def invert_scale(scaler, y):
 
 
     
-def fit_lstm(train, val_X, val_y, n_batch, n_epochs, n_neurons, n_lags,n_features,reg):
-    n_obs = n_lags * n_features
+def fit_lstm(train, val_X, val_y, batch, n_epochs, n_neurons, lags, n_features, breg, kreg, rreg, lr, lrd, do):
+    n_obs = lags * n_features
     train_X, train_y = train[:, :n_obs], train[:, -n_features]
-    train_X = train_X.reshape((train_X.shape[0], n_lags, n_features))
+    train_X = train_X.reshape((train_X.shape[0], lags, n_features))
     
     # design network
     model = Sequential()
-    model.add(LSTM(500, activation='sigmoid',inner_activation='sigmoid', input_shape=(train_X.shape[1], train_X.shape[2]), kernel_regularizer=reg))
-    model.add(Dropout(0.2))
+    model.add(LSTM(500, activation='sigmoid',inner_activation='sigmoid', input_shape=(train_X.shape[1], train_X.shape[2]), bias_regularizer=breg,kernel_regularizer=kreg, recurrent_regularizer=rreg, recurrent_dropout=0.0))
+    model.add(Dropout(do))
     # You may add further layers
     #model.add(Dense(25,activation='relu'))
     #model.add(Dropout(0.5))
@@ -114,40 +114,40 @@ def fit_lstm(train, val_X, val_y, n_batch, n_epochs, n_neurons, n_lags,n_feature
     #model.add(Dense(5,activation='tanh'))
     #model.add(Dropout(0.5))
     model.add(Dense(1))
-    adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.01)
+    adam = optimizers.Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=lrd)
     model.compile(loss='mean_squared_error', optimizer=adam)
     history = model.fit(train_X, train_y, epochs=n_epochs,
                   validation_data=(val_X, val_y),
-                  batch_size=n_batch, 
+                  batch_size=batch, 
                   verbose=2, shuffle=False, 
 #                  callbacks=[EarlyStopping(monitor='val_loss', patience=100, verbose=2, mode='auto')]
                     )
     return model, history
 
-def validate(dataset,train_pct, val_pct, n_lags, n_repeats, n_epochs, n_batch, n_neurons, n_features, reg):
-    n_obs = n_lags * n_features
+def validate(dataset,train_pct, val_pct, lags, n_repeats, n_epochs, batch, n_neurons, n_features, breg, kreg, rreg, lr, lrd, do, scaling_method):
+    n_obs = lags * n_features
     dataset_returns = pd.DataFrame(dataset)
     dataset_returns = get_returns(dataset_returns)
     values = dataset_returns.values
     values_encoded = encode(values)
-    scaler, scaled = scale(values_encoded, train_pct)
-    reframed = multivariate_ts_to_supervised_extra_lag(scaled, n_lags, 1)#lags+2
+    scaler, scaled = scale(values_encoded, train_pct, scaling_method)
+    reframed = multivariate_ts_to_supervised_extra_lag(scaled, lags, 1)#lags+2
     reframed_values=reframed.values
     reframed_values = reframed_values.astype('float32')
     train, val = reframed_values[:int(train_pct*len(reframed)), :] , reframed_values[int(train_pct*len(reframed)):int((train_pct+(1-train_pct)*val_pct)*len(reframed)), :]
     # split into input and outputs
     val_X, val_y = val[:, :n_obs], val[:, -n_features]
     # reshape input to be 3D [samples, timesteps, features]
-    val_X_reshaped = val_X.reshape((val_X.shape[0], n_lags, n_features))
+    val_X_reshaped = val_X.reshape((val_X.shape[0], lags, n_features))
 	# run r times
     error_scores = list()
     train_loss = pd.DataFrame()
     val_loss = pd.DataFrame()
     for r in range(n_repeats):
 		# fit the model
-        lstm_model, history = fit_lstm(train, val_X_reshaped, val_y, n_batch, n_epochs, n_neurons, n_lags, n_features, reg)
+        lstm_model, history = fit_lstm(train, val_X_reshaped, val_y, batch, n_epochs, n_neurons, lags, n_features, breg, kreg, rreg, lr, lrd, do)
 		# forecast val dataset
-        yhat = lstm_model.predict(val_X_reshaped, batch_size=n_batch)
+        yhat = lstm_model.predict(val_X_reshaped, batch_size=batch)
 	    # invert scaling
         invert_array = concatenate((yhat, val_X[:, -(n_features-1):]), axis=1)
         invert_array = invert_scale(scaler, invert_array)
@@ -165,23 +165,23 @@ def validate(dataset,train_pct, val_pct, n_lags, n_repeats, n_epochs, n_batch, n
         train_loss[r]=(history.history['loss'])
         val_loss[r]=(history.history['val_loss'])
         #return error_scores for boxplot, train_loss/val_loss to identify over-fitting, and the model for later OOS testing
-    return error_scores,train_loss.mean(axis=1), val_loss.mean(axis=1), lstm_model
+    return error_scores,train_loss.mean(axis=1), val_loss.mean(axis=1), lstm_model, lags, batch, scaling_method
 
-def out_of_sample_test(dataset, train_pct, val_pct, n_lags, n_batch,  n_features,  model):
-    n_obs = n_lags * n_features
+def out_of_sample_test(dataset, train_pct, val_pct, lags, batch,  n_features,  model, scaling_method):
+    n_obs = lags * n_features
     dataset_returns = pd.DataFrame(dataset)
     dataset_returns = get_returns(dataset_returns)
     values = dataset_returns.values
     values_encoded = encode(values)
-    scaler, scaled = scale(values_encoded, train_pct)
-    reframed = multivariate_ts_to_supervised_extra_lag(scaled, n_lags, 1)#lags+2
+    scaler, scaled = scale(values_encoded, train_pct, scaling_method)
+    reframed = multivariate_ts_to_supervised_extra_lag(scaled, lags, 1)
     reframed_values=reframed.values
     reframed_values = reframed_values.astype('float32')
     test = reframed_values[int((train_pct+(1-train_pct)*val_pct)*len(reframed)):, :]
     test_X= test[:, :n_obs]
     # reshape input to be 3D [samples, timesteps, features]
-    test_X_reshaped = test_X.reshape((test_X.shape[0], n_lags, n_features))
-    yhat = model.predict(test_X_reshaped, batch_size=n_batch)
+    test_X_reshaped = test_X.reshape((test_X.shape[0], lags, n_features))
+    yhat = model.predict(test_X_reshaped, batch_size=batch)
 	# invert scaling
     invert_array = concatenate((yhat, test_X[:, -(n_features-1):]), axis=1)
     invert_array = invert_scale(scaler, invert_array)
@@ -190,7 +190,7 @@ def out_of_sample_test(dataset, train_pct, val_pct, n_lags, n_batch,  n_features
     # return dataset_returns with OOS predictions
     return dataset_returns
 
-def equity_curve(dataset, threshold = [0, 0.25, 0.5, 1 ,2] ):
+def equity_curve(dataset, m, threshold = [0, 0.25, 0.5, 1 ,2]):
     # Define the threshold as a percentage of the standard deviation of return predictions. The lower the threshold the more often the strategy is in the market.
     dataset.dropna(inplace=True)
     
@@ -201,26 +201,33 @@ def equity_curve(dataset, threshold = [0, 0.25, 0.5, 1 ,2] ):
         dataset['equity_curve_%.2f_sigma' %i]=(dataset['trade_result_%.2f_sigma' %i]+1).cumprod()
         dataset['noncomp_curve_%.2f_sigma' %i]=(dataset['trade_result_%.2f_sigma' %i]).cumsum()        
         dataset['correct_prediction_%.2f_sigma' %i]=(dataset['signal_%.2f_sigma' %i][dataset['signal_%.2f_sigma' %i]!=0]==np.sign(dataset[1][dataset['signal_%.2f_sigma' %i]!=0])).astype(int)
-    
+
+
+    print('::::::::FOR MODEL: %s:::::::' %m)
     for i in threshold:
         #If there are any trades at all, calculate some statistics.
         if (len(dataset['correct_prediction_%.2f_sigma' %i].dropna()))>0:
+
             pct_correct = sum(dataset['correct_prediction_%.2f_sigma' %i].dropna())/len(dataset['correct_prediction_%.2f_sigma' %i].dropna())
             print('Percent correct %.2f_sigma: ' %i + str((pct_correct)*100)+" %")
             #Plot compounded and non-compounded equity curves 
             dataset['equity_curve_%.2f_sigma' %i].plot()
-            plt.title('equity_curve at %.2f_sigma' %i)
-            plt.savefig('equity_curve_at_%.2f_sigma.png' %i)
+            plt.title('equity_curve at %.2f_sigma %s' %(i,m), fontsize=4)
+            plt.ylabel('equity value')
+            plt.xlabel('period')
+            plt.savefig('%sequity_curve_at_%.2f_sigma.png' %(m,i))
             plt.close()
             dataset['noncomp_curve_%.2f_sigma' %i].plot()
-            plt.title('non-compounding_profit_curve at %.2f_sigma' %i)
-            plt.savefig('non-compounding_profit_curve_at_%.2f_sigma.png' %i)
+            plt.title('non-compounding_profit_curve at %.2f_sigma %s' %(i,m), fontsize=4)
+            plt.ylabel('equity value')
+            plt.xlabel('period')
+            plt.savefig('%snon-compounding_profit_curve_at_%.2f_sigma.png' %(m,i))
             plt.close()
             # Does the model have a long or short bias?
             percent_betting_up = dataset['signal_%.2f_sigma' %i][dataset['signal_%.2f_sigma' %i]>0].sum()/len(dataset['signal_%.2f_sigma' %i])#[dataset['signal_%.2f_sigma' %i]!=0])
             percent_betting_down = -dataset['signal_%.2f_sigma' %i][dataset['signal_%.2f_sigma' %i]<0].sum()/len(dataset['signal_%.2f_sigma' %i])#[dataset['signal_%.2f_sigma' %i]!=0])
             out_of_market = 1.00 - (percent_betting_up + percent_betting_down)
-            print('percentage of periods betting up %.2f_sigma: ' %i+str(percent_betting_up*100)+' %'
+            print('percentage of periods betting up %.2f_sigma : ' %(i)+str(percent_betting_up*100)+' %'
                   +'; percentage of periods betting down: %.2f_sigma  ' %i+str(percent_betting_down*100)+' %'
                   +'; percentage of periods staying out of the market: %.2f_sigma  ' %i+str(out_of_market*100)+' %')
             #How many trades were there
@@ -232,6 +239,8 @@ def equity_curve(dataset, threshold = [0, 0.25, 0.5, 1 ,2] ):
     # For reference, plot the asset price curve
     ((dataset[1]+1).cumprod()).plot()
     plt.title('Asset price series')
+    plt.ylabel('price')
+    plt.xlabel('period')
     plt.savefig('Asset_price_series.png')
     plt.close() 
     return dataset

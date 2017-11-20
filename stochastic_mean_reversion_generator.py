@@ -10,7 +10,6 @@ def stochastic_mean_reversion_generator(annual_drift, annual_sd, years, edge_pro
     is superimposed. In particular, every day there's an 'edge_probability' chance that the next 
     open-to-open return is in expectation 'edge_intensity' standard deviations
     above (below) the mean if the open the day before is below (above) the open
-    2 days ago and if the volume the day before is above (below) the volume
     2 days ago. It returns a DataFrame with the time series and the expected profit and sharpe ratio p.a. from the edge (only).
     '''
     length = 252*years+1 
@@ -46,6 +45,6 @@ def stochastic_mean_reversion_generator(annual_drift, annual_sd, years, edge_pro
     sim_data.dropna(inplace=True)
     return sim_data, expected_edge_profit_pa, expected_edge_sharpe_ratio
 
-sim_data, expected_profit_pa, expected_edge_sharpe_ratio= stochastic_mean_reversion_generator(0.0, 0.1, 30, 0.55, 0.05)  
+sim_data, expected_profit_pa, expected_edge_sharpe_ratio= stochastic_mean_reversion_generator(0.0, 0.1, 60, 0.55, 0.05)  
 sim_data.to_csv('data/ae3.csv', header = False, index=True, encoding='utf-8')
 print ('expected_profit_pa: %.2f percent; expected_edge_sharpe_ratio %.2f' % (expected_profit_pa*100, expected_edge_sharpe_ratio))
