@@ -127,7 +127,7 @@ def fit_lstm(train, val_X, val_y, batch, n_epochs, n_neurons, lags, n_features, 
 def validate(dataset,train_pct, val_pct, lags, n_repeats, n_epochs, batch, n_neurons, n_features, breg, kreg, rreg, lr, lrd, do, scaling_method):
     n_obs = lags * n_features
     dataset_returns = pd.DataFrame(dataset)
-    dataset_returns = get_returns(dataset_returns)
+    dataset_returns = get_returns(dataset_returns, columns=[1,2,3,4,9,10,11,12,13,14,15])
     values = dataset_returns.values
     values_encoded = encode(values)
     scaler, scaled = scale(values_encoded, train_pct, scaling_method)
@@ -170,7 +170,7 @@ def validate(dataset,train_pct, val_pct, lags, n_repeats, n_epochs, batch, n_neu
 def out_of_sample_test(dataset, train_pct, val_pct, lags, batch,  n_features,  model, scaling_method):
     n_obs = lags * n_features
     dataset_returns = pd.DataFrame(dataset)
-    dataset_returns = get_returns(dataset_returns)
+    dataset_returns = get_returns(dataset_returns,columns=[1,2,3,4,9,10,11,12,13,14,15])
     values = dataset_returns.values
     values_encoded = encode(values)
     scaler, scaled = scale(values_encoded, train_pct, scaling_method)
@@ -190,7 +190,7 @@ def out_of_sample_test(dataset, train_pct, val_pct, lags, batch,  n_features,  m
     # return dataset_returns with OOS predictions
     return dataset_returns
 
-def equity_curve(dataset, m, threshold = [0, 0.25, 0.5, 1 ,2]):
+def equity_curve(dataset, m, periods_in_year, threshold = [0, 0.25, 0.5, 1 ,2]):
     # Define the threshold as a percentage of the standard deviation of return predictions. The lower the threshold the more often the strategy is in the market.
     dataset.dropna(inplace=True)
     
@@ -234,8 +234,8 @@ def equity_curve(dataset, m, threshold = [0, 0.25, 0.5, 1 ,2]):
             dataset['trade_%.2f_sigma' %i]= (dataset['signal_%.2f_sigma' %i].shift(1)!=dataset['signal_%.2f_sigma' %i]).astype(int)
             total_trades = dataset['trade_%.2f_sigma' %i].sum()
             print('There were %s total trades for %.2f_sigma.' %(total_trades, i))
-            print('The annualised_sharpe for %.2f_sigma. is: %.2f.' %(i, annualised_sharpe(dataset['trade_result_%.2f_sigma' %i])))
-            print('The CAGR for %.2f_sigma. is: %.2f percent.' %(i, annual_return(dataset['equity_curve_%.2f_sigma' %i])*100))
+            print('The annualised_sharpe for %.2f_sigma. is: %.2f.' %(i, annualised_sharpe(dataset['trade_result_%.2f_sigma' %i], periods_in_year)))
+            print('The CAGR for %.2f_sigma. is: %.2f percent.' %(i, annual_return(dataset['equity_curve_%.2f_sigma' %i],periods_in_year)*100))
     # For reference, plot the asset price curve
     ((dataset[1]+1).cumprod()).plot()
     plt.title('Asset price series')
@@ -245,16 +245,16 @@ def equity_curve(dataset, m, threshold = [0, 0.25, 0.5, 1 ,2]):
     plt.close() 
     return dataset
 
-def annualised_sharpe(returns):
+def annualised_sharpe(returns, periods_in_year):
     '''
     Assumes daily returns are supplied. If not change periods in year.
     '''
     
-    periods_in_year = 252
+    # periods_in_year = 368751#252
     return np.sqrt(periods_in_year) * returns.mean() / returns.std()
 
-def annual_return(equity_curve):
-    periods_in_year = 252
+def annual_return(equity_curve, periods_in_year):
+    # periods_in_year = 368751#252
     return equity_curve.values[-1]**(periods_in_year/len(equity_curve))-1
     
 

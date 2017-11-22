@@ -10,19 +10,21 @@ def run():
 # Load dataset
     directory = os.path.dirname(os.path.abspath(__file__))
     #whats the name of the file that contains the data; the data should be in the data directory otherwise give the complete path in path
-    rel_path ='data/rw.csv'
+    rel_path ='data/date_AUDCAD_10M_2013-2016.csv'
     path = os.path.join(directory, rel_path)
+    # path ='/Users/jan/Desktop/genotick/target/included_Extended/multi_market_date_xauusd_d.csv'
     #format: date,open,high,low,close,volume,other, NO HEADER, format of date doesn't matter because it's removed in the next step anyway
     dataset = pd.read_csv(path, header=None, index_col=0)
     #remove index
     dataset.reset_index(drop=True, inplace=True)
+    periods_in_year = 252#for annualization of Sharpe and CAGR
     #Define hyperparameters
-    train_pct = 0.33 #as a percentage of the whole dataset length
+    train_pct = 0.5 #as a percentage of the whole dataset length
     val_pct = 0.1 #pct of test set used for validation ( NOT as a percentage of the whole dataset length)
     n_lags = [2]#How many past periods should the model have direct access to. Analogous to window length in, for example, a moving average model. 
     n_features = len(dataset.columns) # How many features are there?
-    n_repeats = 2 # How many runs per configuration to calculate means and boxplot.
-    n_epochs = [100] # List of epochs. For specific value, for example 300, set to [300].
+    n_repeats = 1 # How many runs per configuration to calculate means and boxplot.
+    n_epochs = [200] # List of epochs. For specific value, for example 300, set to [300].
     n_batch = [512] # Batch size, the smaller the longer the time to run.
     n_neurons = [5]#,5,10,50] # List of number of neurons. 
     bias_regularizers = [L1L2(l1=0.0, l2=0.0)]#[L1L2(l1=0.0, l2=0.0), L1L2(l1=0.01, l2=0.0), L1L2(l1=0.0, l2=0.01), L1L2(l1=0.01, l2=0.01)]
@@ -32,8 +34,8 @@ def run():
     learning_rate_decay = [0.001]#, 0.001, 0.005]
     dropout = [0.2]
     threshold = [0, 0.25, 0.5, 1 ,2]
-    scaling_method = ['normalize','standardize']
-    only_give_performance_of_best_model =False #if False, trading performance of all models is computed but only best model is returned; if true, only trading performance of best model is computed
+    scaling_method = ['normalize']#,'standardize']
+    only_give_performance_of_best_model = False #if False, trading performance of all models is computed but only best model is returned; if true, only trading performance of best model is computed
 
     results = pd.DataFrame()
     train_loss = pd.DataFrame()
@@ -115,7 +117,7 @@ def run():
         models_keys = models.keys()
     for m in models_keys:
         out_of_sample_dataset = lstm.out_of_sample_test(dataset, train_pct, val_pct, opt_lags[m], opt_batch[m],  n_features,  models[m], opt_sm[m])
-        equity_curve_data = lstm.equity_curve(out_of_sample_dataset, m, threshold)
+        equity_curve_data = lstm.equity_curve(out_of_sample_dataset, m, periods_in_year, threshold)
         equity_curve_data.to_csv('%s_equity_curve.csv' %m,header = True, index=True, encoding='utf-8')
 
     return results, train_loss, val_loss, best_model

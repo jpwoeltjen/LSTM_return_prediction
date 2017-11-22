@@ -23,5 +23,5 @@ def ohlcv_random_walk(annual_drift, annual_sd, years):
     sim_data.dropna(inplace=True)
     return sim_data
 
-sim_data = ohlcv_random_walk(0.0, 0.1, 20)  
+sim_data = ohlcv_random_walk(0.0, 0.1, 400)  
 sim_data.to_csv('data/rw.csv', header = False, index=True, encoding='utf-8')
