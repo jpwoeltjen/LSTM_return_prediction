@@ -8,6 +8,7 @@ The model is fit on the training data. A grid search for the most effective hype
 To reduce over-fitting dropout, weight regularization, learning rate decay, and early stopping is implemented.
 
 Resources I used:
+
 https://machinelearningmastery.com/use-weight-regularization-lstm-networks-time-series-forecasting/
 https://github.com/jaungiers/LSTM-Neural-Network-for-Time-Series-Prediction
 
@@ -17,7 +18,7 @@ Raschka, Python Machine Learning
 
 The model is tested whether it has look-ahead bias. Look-ahead bias refers to the bug that the model has somehow -- often this is not obvious -- access to future data. If this was so, the model would of course do very well in backtesting. But it would fall apart in live trading. It is absolutely imperative that this bug doesn't exist or all further work would be worse than useless. 
 Fortunately there is a simple test. Run the model over purely random data and see if it produces positive returns. If it does something is wrong. For that I simulated a random walk over 400 years. (I want to be sure.) 
-As can be seen the model does not pick up a pattern. The return series itself is a random walk. The annualized Sharpe ration is 0.07 over the test set. 
+As can be seen the model does not pick up a pattern. The return series itself is a random walk. The annualized Sharpe ratio is 0.07 over the test set. 
 ![alt text](https://github.com/jpwoeltjen/LSTM_return_prediction/blob/master/floyd_lstm_output/rw/%5B2%20lags%5D%5B100%20epochs%5D%5B512%20batch%5D%5B5%20neurons%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5B0.0010%20lr%5D%5B0.0010%20lrd%5D%5B0.20%20do%5D%5Bnormalize%5D_equity_curveequity_curve_at_0.00_sigma.png "random walk")
 
 Next similar rws are tested but with stochastic rules layered on top.
@@ -49,7 +50,7 @@ This simulation is similar to ae3 but the edge occurs less frequent while having
 
 3. Test
 
-The model is tested on real data. For this test I obtained minute resolution data for EURUSD from 2011 to 2016 form http://www.histdata.com. I trained this model for 100 epochs on FloydHub with their Titan K80 GPU. This took about an hour. The result is an astonishing **3.65 Sharpe** for this **single asset**. But this assumes no transaction costs and mid-price execution. These costs would of course be substantial and as is the model wouldn't be profitable. There are however ways to reduce trading activity and increase the predictive power of the model. I'm not giving away all my secrets. 
+The model is tested on real data. For this test I obtained minute resolution data for EURUSD from 2011 to 2016 from http://www.histdata.com. I trained this model for 100 epochs on FloydHub with the Titan K80 GPU. This took about an hour. The result is an astonishing **3.65 Sharpe** for this **single asset**. But this assumes no transaction costs and mid-price execution. These costs would of course be substantial and as is the model wouldn't be profitable. There are however ways to reduce trading activity and increase the predictive power of the model. I'm not giving away all my secrets. 
 
 ![alt text](https://github.com/jpwoeltjen/LSTM_return_prediction/blob/master/floyd_lstm_output/eurusd_1m_2011-2016/%5B2%20lags%5D%5B100%20epochs%5D%5B512%20batch%5D%5B5%20neurons%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5B0.0010%20lr%5D%5B0.0010%20lrd%5D%5B0.20%20do%5D%5Bnormalize%5D_equity_curveequity_curve_at_0.25_sigma.png "EURUSD_1M")
 
