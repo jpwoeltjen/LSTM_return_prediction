@@ -11,7 +11,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 m ='[2 lags][100 epochs][512 batch][5 neurons][l1 0.00,l2 0.00][l1 0.00,l2 0.00][l1 0.00,l2 0.00][0.0010 lr][0.0010 lrd][0.20 do][normalize]_equity_curve'
-
+d = 'eurusd_1m_2011-2016'
 def annualised_sharpe(returns, periods_in_year):
     '''
     Assumes daily returns are supplied. If not change periods in year.
@@ -23,21 +23,21 @@ def annualised_sharpe(returns, periods_in_year):
 def annual_return(equity_curve, periods_in_year):
     # periods_in_year = 368751#252
     return equity_curve.values[-1]**(periods_in_year/len(equity_curve))-1
-periods_in_year = 142232
-dataset = pd.read_csv('/Users/jan/Documents/deep_learning/LSTM2/floyd_lstm_output/eurusd_1m_2011-2016/%s.csv' %m)
+periods_in_year = 142232#252
+dataset = pd.read_csv('/Users/jan/Documents/deep_learning/LSTM2/floyd_lstm_output/%s/%s.csv' %(d,m))
 for i in [0, 0.25, 0.5, 1 ,2]:
         #Plot compounded and non-compounded equity curves 
     dataset['equity_curve_%.2f_sigma' %i].plot()
     plt.title('equity_curve at %.2f_sigma ' %(i), fontsize=4)
     plt.ylabel('equity value')
     plt.xlabel('period')
-    plt.savefig('floyd_lstm_output/eurusd_1m_2011-2016/%sequity_curve_at_%.2f_sigma.png' %(m,i))
+    plt.savefig('floyd_lstm_output/%s/%sequity_curve_at_%.2f_sigma.png' %(d,m,i))
     plt.close()
     dataset['noncomp_curve_%.2f_sigma' %i].plot()
     plt.title('non-compounding_profit_curve at %.2f_sigma' %(i), fontsize=4)
     plt.ylabel('equity value')
     plt.xlabel('period')
-    plt.savefig('floyd_lstm_output/eurusd_1m_2011-2016/%snon-compounding_profit_curve_at_%.2f_sigma.png' %(m,i))
+    plt.savefig('floyd_lstm_output/%s/%snon-compounding_profit_curve_at_%.2f_sigma.png' %(d,m,i))
     plt.close()
     # Does the model have a long or short bias?
     percent_betting_up = dataset['signal_%.2f_sigma' %i][dataset['signal_%.2f_sigma' %i]>0].sum()/len(dataset['signal_%.2f_sigma' %i])#[dataset['signal_%.2f_sigma' %i]!=0])
@@ -57,5 +57,5 @@ for i in [0, 0.25, 0.5, 1 ,2]:
 plt.title('Asset price series')
 plt.ylabel('price')
 plt.xlabel('period')
-plt.savefig('floyd_lstm_output/eurusd_1m_2011-2016/Asset_price_series.png')
+plt.savefig('floyd_lstm_output/%s/Asset_price_series.png'%d)
 plt.close() 
