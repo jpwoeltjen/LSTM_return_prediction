@@ -1,4 +1,5 @@
-
+[2 lags][100 epochs][512 batch][5 neurons][l1 0.00,l2 0.00][l1 0.00,l2 0.00][l1 0.00,l2 0.00][0.0010 lr][0.0010 lrd][0.20 do][normalize]_equity_curve.csv
+[2 lags][100 epochs][512 batch][5 neurons][l1 0.00,l2 0.00][l1 0.00,l2 0.00][l1 0.00,l2 0.00][0.0010 lr][0.0010 lrd][0.20 do][normalize]_equity_curve.csv
 date_AUDCAD_10M_2013-2016.csv
 /eurusd_10m_2011-2016
 /multi_market_date_xauusd_d

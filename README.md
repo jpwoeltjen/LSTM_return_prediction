@@ -1,6 +1,6 @@
 # LSTM Neural Network for Asset Return Prediction
 
-This project implements a LSTM artificial neural network for asset return prediction framework. Using the Keras API, a LSTM NN is used to predict the next open-to-open return. For testing, the features used are simulated past ohlcv, and date. The simulated data are a random walk (rw) on which a layer of artificial edges is superimposed. The test for the framework is whether or not these edges can successfully be exploited. For live trading, any data, which the trader perceives to have predictive power, such as ohlcv, day of week, minute, sentiment, and fundamental data could be used. The features must be properly encoded by the user. For ordinal features the label encoder within the encode(values, columns) function can be used. Just specify the columns. Categorical features should first be label encoded and then one-hot encoded. From the one-hot encoded matrix, one column can be dropped because of perfect multicollinearity. The current configuration allows the user to input csv files in the format:  date,open,high,low,close,volume,day_of_week,other,…
+This project implements a LSTM artificial neural network for asset return prediction framework. Using the Keras API, a LSTM NN is used to predict the next open-to-open return. For testing, the features used are simulated past ohlcv, and date. The simulated data are a random walk (rw) on which a layer of artificial edges is superimposed. The test for the framework is whether or not these edges can successfully be exploited. For live trading, any data, which the trader perceives to have predictive power, such as ohlcv, day of week, minute, sentiment, and fundamental data could be used. The features must be properly encoded by the user. For ordinal features the label encoder within the encode(values, columns) function can be used. Just specify the columns. Categorical features should first be label encoded and then one-hot encoded. From the one-hot encoded matrix, one column can be dropped because of perfect multicollinearity. The current configuration allows the user to input .csv files in the format:  date,open,high,low,close,volume,day_of_week,other,…
 
 The series is split up into training, validation, an test subsections.
 The model is fit on the training data. A grid search for the most effective hyper-parameters is then performed. The models are evaluated on the validation set. The best hyper-parameters are selected and the model is tested on the test set. By setting only_give_performance_of_best_model = False, trading statistics and equity curves are computed for all models. Selecting the best model manually after this step would overfit the test set though.So only the model returned by the system should be considered. By setting only_give_performance_of_best_model = True, trading statistics and equity curves are computed only for the best model. This reduces the temptation to overfit the test set. 
@@ -10,17 +10,19 @@ To reduce over-fitting dropout, weight regularization, learning rate decay, and 
 Resources I used:
 https://machinelearningmastery.com/use-weight-regularization-lstm-networks-time-series-forecasting/
 https://github.com/jaungiers/LSTM-Neural-Network-for-Time-Series-Prediction
+
 Raschka, Python Machine Learning
 
 1. Test
 
-The model is tested whether it has look-ahead bias. Look-ahead bias refers to the bug that the model has somehow -- often this is not obvious -- access to future data. If this was so, the model would of course do very well in becktesting. But it would fall apart in live trading. It is absolutely imperative that this bug doesn't exist or all further work would be worse than useless. 
+The model is tested whether it has look-ahead bias. Look-ahead bias refers to the bug that the model has somehow -- often this is not obvious -- access to future data. If this was so, the model would of course do very well in backtesting. But it would fall apart in live trading. It is absolutely imperative that this bug doesn't exist or all further work would be worse than useless. 
 Fortunately there is a simple test. Run the model over purely random data and see if it produces positive returns. If it does something is wrong. For that I simulated a random walk over 400 years. (I want to be sure.) 
 As can be seen the model does not pick up a pattern. The return series itself is a random walk. The annualized Sharpe ration is 0.07 over the test set. 
-
+![alt text](https://github.com/jpwoeltjen/LSTM_return_prediction/blob/master/floyd_lstm_output/rw/%5B2%20lags%5D%5B100%20epochs%5D%5B512%20batch%5D%5B5%20neurons%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5B0.0010%20lr%5D%5B0.0010%20lrd%5D%5B0.20%20do%5D%5Bnormalize%5D_equity_curveequity_curve_at_0.00_sigma.png "random walk")
 
 Next similar rws are tested but with stochastic rules layered on top.
 The datasets are generated with the generator functions with arguments: (annual_drift, annual_sd, years, edge_probability, edge_intesity). These functions generate random walks on which layers of stochastic edges are superimposed. These rules are getting more and more difficult for the model to detect.
+
 
 2. Test
 
@@ -47,9 +49,9 @@ This simulation is similar to ae3 but the edge occurs less frequent while having
 
 3. Test
 
-The model is tested on real data. For this test I obtained minute resolution data for EURUSD from 2011 to 2016 form http://www.histdata.com. I trained this model for 100 epochs on FloydHub with their Titan K80 GPU. This took about an hour. The result is an astonishing **3.65 Sharpe** for this **single asset**. But this assumes no trasaction costs and mid-price execution. These costs would of course be substantial and as is the model wouldn't be profitable. There are however ways to reduce trading activity and increase the predictive power of the model. I'm not giving away all my secrets. 
+The model is tested on real data. For this test I obtained minute resolution data for EURUSD from 2011 to 2016 form http://www.histdata.com. I trained this model for 100 epochs on FloydHub with their Titan K80 GPU. This took about an hour. The result is an astonishing **3.65 Sharpe** for this **single asset**. But this assumes no transaction costs and mid-price execution. These costs would of course be substantial and as is the model wouldn't be profitable. There are however ways to reduce trading activity and increase the predictive power of the model. I'm not giving away all my secrets. 
 
-![alt text](https://github.com/jpwoeltjen/LSTM_return_prediction/blob/master/floyd_lstm_output/eurusd_1m_2011-2016/[2 lags][100 epochs][512 batch][5 neurons][l1 0.00,l2 0.00][l1 0.00,l2 0.00][l1 0.00,l2 0.00][0.0010 lr][0.0010 lrd][0.20 do][normalize]_equity_curveequity_curve_at_0.25_sigma.png "EURUSD_1M")
+![alt text](https://github.com/jpwoeltjen/LSTM_return_prediction/blob/master/floyd_lstm_output/eurusd_1m_2011-2016/%5B2%20lags%5D%5B100%20epochs%5D%5B512%20batch%5D%5B5%20neurons%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5B0.0010%20lr%5D%5B0.0010%20lrd%5D%5B0.20%20do%5D%5Bnormalize%5D_equity_curveequity_curve_at_0.25_sigma.png "EURUSD_1M")
 
 
 
