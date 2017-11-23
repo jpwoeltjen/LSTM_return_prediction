@@ -10,14 +10,14 @@ def run():
 # Load dataset
     directory = os.path.dirname(os.path.abspath(__file__))
     #whats the name of the file that contains the data; the data should be in the data directory otherwise give the complete path in path
-    rel_path ='data/date_AUDCAD_10M_2013-2016.csv'
+    rel_path ='data/EURUSD_60M_2011-2016.csv'
     path = os.path.join(directory, rel_path)
     # path ='/Users/jan/Desktop/genotick/target/included_Extended/multi_market_date_xauusd_d.csv'
     #format: date,open,high,low,close,volume,other, NO HEADER, format of date doesn't matter because it's removed in the next step anyway
     dataset = pd.read_csv(path, header=None, index_col=0)
     #remove index
     dataset.reset_index(drop=True, inplace=True)
-    periods_in_year = 252#for annualization of Sharpe and CAGR
+    periods_in_year = 2370#for annualization of Sharpe and CAGR
     #Define hyperparameters
     train_pct = 0.5 #as a percentage of the whole dataset length
     val_pct = 0.1 #pct of test set used for validation ( NOT as a percentage of the whole dataset length)

@@ -50,9 +50,9 @@ This simulation is similar to ae3 but the edge occurs less frequent while having
 
 3. Test
 
-The model is tested on real data. For this test I obtained minute resolution data for EURUSD from 2011 to 2016 from http://www.histdata.com. I trained this model for 100 epochs on FloydHub with the Titan K80 GPU. This took about an hour. The result is an astonishing **3.65 Sharpe** for this **single asset**. But this assumes no transaction costs and mid-price execution. These costs would of course be substantial and as is the model wouldn't be profitable. There are however ways to reduce trading activity and increase the predictive power of the model. I'm not giving away all my secrets. 
+The model is tested on real data. For this test I obtained minute resolution data for EURUSD from 2011 to 2016 from http://www.histdata.com. I trained this model for 100 epochs on FloydHub with the Titan K80 GPU. This took about an hour. The result is an astonishing **5.03 Sharpe** and **60% CAGR** for this **single asset**. But this assumes no transaction costs and mid-price execution. These costs would of course be substantial and in its unrefined form, the model wouldn't be profitable. There are however ways to reduce trading activity and increase the predictive power of the model. 
 
-![alt text](https://github.com/jpwoeltjen/LSTM_return_prediction/blob/master/floyd_lstm_output/eurusd_1m_2011-2016/%5B2%20lags%5D%5B100%20epochs%5D%5B512%20batch%5D%5B5%20neurons%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5B0.0010%20lr%5D%5B0.0010%20lrd%5D%5B0.20%20do%5D%5Bnormalize%5D_equity_curveequity_curve_at_0.25_sigma.png "EURUSD_1M")
+![alt text](https://github.com/jpwoeltjen/LSTM_return_prediction/blob/master/floyd_lstm_output/eurusd_1m_2011-2016/%5B2%20lags%5D%5B100%20epochs%5D%5B512%20batch%5D%5B5%20neurons%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5Bl1%200.00%2Cl2%200.00%5D%5B0.0010%20lr%5D%5B0.0010%20lrd%5D%5B0.20%20do%5D%5Bnormalize%5D_equity_curveequity_curve_at_0.00_sigma.png "EURUSD_1M")
 
 
 

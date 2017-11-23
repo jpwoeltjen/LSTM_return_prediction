@@ -127,7 +127,7 @@ def fit_lstm(train, val_X, val_y, batch, n_epochs, n_neurons, lags, n_features, 
 def validate(dataset,train_pct, val_pct, lags, n_repeats, n_epochs, batch, n_neurons, n_features, breg, kreg, rreg, lr, lrd, do, scaling_method):
     n_obs = lags * n_features
     dataset_returns = pd.DataFrame(dataset)
-    dataset_returns = get_returns(dataset_returns, columns=[1,2,3,4,9,10,11,12,13,14,15])
+    dataset_returns = get_returns(dataset_returns, )#columns=[1,2,3,4,9,10,11,12,13,14,15])
     values = dataset_returns.values
     values_encoded = encode(values)
     scaler, scaled = scale(values_encoded, train_pct, scaling_method)
@@ -170,7 +170,7 @@ def validate(dataset,train_pct, val_pct, lags, n_repeats, n_epochs, batch, n_neu
 def out_of_sample_test(dataset, train_pct, val_pct, lags, batch,  n_features,  model, scaling_method):
     n_obs = lags * n_features
     dataset_returns = pd.DataFrame(dataset)
-    dataset_returns = get_returns(dataset_returns,columns=[1,2,3,4,9,10,11,12,13,14,15])
+    dataset_returns = get_returns(dataset_returns)#,columns=[1,2,3,4,9,10,11,12,13,14,15])
     values = dataset_returns.values
     values_encoded = encode(values)
     scaler, scaled = scale(values_encoded, train_pct, scaling_method)

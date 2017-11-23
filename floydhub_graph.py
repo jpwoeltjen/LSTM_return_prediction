@@ -23,7 +23,7 @@ def annualised_sharpe(returns, periods_in_year):
 def annual_return(equity_curve, periods_in_year):
     # periods_in_year = 368751#252
     return equity_curve.values[-1]**(periods_in_year/len(equity_curve))-1
-periods_in_year = 142232#252
+periods_in_year = 316072#252
 dataset = pd.read_csv('/Users/jan/Documents/deep_learning/LSTM2/floyd_lstm_output/%s/%s.csv' %(d,m))
 for i in [0, 0.25, 0.5, 1 ,2]:
         #Plot compounded and non-compounded equity curves 
