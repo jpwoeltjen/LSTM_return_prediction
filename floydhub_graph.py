@@ -11,7 +11,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 m ='[2 lags][100 epochs][512 batch][5 neurons][l1 0.00,l2 0.00][l1 0.00,l2 0.00][l1 0.00,l2 0.00][0.0010 lr][0.0010 lrd][0.20 do][normalize]_equity_curve'
-d = 'eurusd_1m_2011-2016'
+d = 'ae3'
 def annualised_sharpe(returns, periods_in_year):
     '''
     Assumes daily returns are supplied. If not change periods in year.
@@ -23,7 +23,7 @@ def annualised_sharpe(returns, periods_in_year):
 def annual_return(equity_curve, periods_in_year):
     # periods_in_year = 368751#252
     return equity_curve.values[-1]**(periods_in_year/len(equity_curve))-1
-periods_in_year = 316072#252
+periods_in_year = 252#316072#252
 dataset = pd.read_csv('/Users/jan/Documents/deep_learning/LSTM2/floyd_lstm_output/%s/%s.csv' %(d,m))
 for i in [0, 0.25, 0.5, 1 ,2]:
         #Plot compounded and non-compounded equity curves 

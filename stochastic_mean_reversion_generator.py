@@ -45,6 +45,6 @@ def stochastic_mean_reversion_generator(annual_drift, annual_sd, years, edge_pro
     sim_data.dropna(inplace=True)
     return sim_data, expected_edge_profit_pa, expected_edge_sharpe_ratio
 
-sim_data, expected_profit_pa, expected_edge_sharpe_ratio= stochastic_mean_reversion_generator(0.0, 0.1, 60, 0.55, 0.05)  
+sim_data, expected_profit_pa, expected_edge_sharpe_ratio= stochastic_mean_reversion_generator(0.0, 0.1, 400, 0.55, 0.05)  
 sim_data.to_csv('data/ae3.csv', header = False, index=True, encoding='utf-8')
 print ('expected_profit_pa: %.2f percent; expected_edge_sharpe_ratio %.2f' % (expected_profit_pa*100, expected_edge_sharpe_ratio))
