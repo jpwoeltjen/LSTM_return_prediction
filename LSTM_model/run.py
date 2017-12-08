@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from keras.regularizers import L1L2
 import lstm
 import os 
-
+import keras
 # np.random.seed(777)
 
 def run():
@@ -28,7 +28,7 @@ def run():
     n_lags = [2]#How many past periods should the model have direct access to. Analogous to window length in, for example, a moving average model. 
     n_features = len(dataset.columns) # How many features are there?
     n_repeats = 1 # How many runs per configuration to calculate means and boxplot.
-    n_epochs = [100,1000,6000] # List of **differenced** epochs. For specific value, for example 300, set to [300]. If you want to test 300 and 600 epochs set to [300, 300]. (600=300+300)
+    n_epochs = [1000,1000,1000] # List of **differenced** epochs. For specific value, for example 300, set to [300]. If you want to test 300 and 600 epochs set to [300, 300]. (600=300+300)
     n_batch = [512] # Batch size, the smaller the longer the time to run.
     n_neurons = [9]#,5,10,50] # List of number of neurons. 
     bias_regularizers = [L1L2(l1=0.0, l2=0.0)]#[L1L2(l1=0.0, l2=0.0), L1L2(l1=0.01, l2=0.0), L1L2(l1=0.0, l2=0.01), L1L2(l1=0.01, l2=0.01)]
@@ -55,8 +55,6 @@ def run():
 
     for lags in n_lags:
         name_lags = ('[%i lags]' % (lags))
-        # for epochs in n_epochs:
-        #     name_epochs = ('[%i epochs]' % (epochs))
         for batch in n_batch:
             name_batch = ('[%i batch]' % (batch))
             for neurons in n_neurons:
@@ -83,12 +81,18 @@ def run():
                                                 name_epochs = ('[%i epochs]' % (cum_epochs))
                                                 if 'name' in locals():
                                                     l_name = name
-                                                    model = models[l_name]
+                                                    model = keras.models.clone_model(models[l_name])
+                                                    weights = models[l_name].get_weights()
+                                                    model.set_weights(weights)
                                                 else: model = None
                                                 name = (name_lags + name_epochs + name_batch + name_neurons + name_breg  + name_kreg + 
-                                                name_rreg + name_lr + name_lrd + name_do) + name_sm
+                                                name_rreg + name_lr + name_lrd + name_do + name_sm)
                                                 results[name], train_loss[name], val_loss[name], models[name], opt_lags[name], opt_batch[name], opt_sm[name]= lstm.validate(model , dataset, 
                                                 train_pct, val_pct, lags, n_repeats, epochs, batch, neurons, n_features, breg, kreg, rreg, lr, lrd, do, sm, p_out)
+
+                                                # out_of_sample_dataset = lstm.out_of_sample_test(dataset, train_pct, val_pct, opt_lags[name], opt_batch[name],  n_features,  models[name], opt_sm[name], p_out)
+                                                # equity_curve_data = lstm.equity_curve(out_of_sample_dataset, name, periods_in_year, plot, threshold)
+                                                # equity_curve_data.to_csv('%s_equity_curve.csv' %(name), header = True, index=True, encoding='utf-8')
             
     #Identify and select the best model.
     best_model_name = results.mean(axis=0).idxmin(axis=1)

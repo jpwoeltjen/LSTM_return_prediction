@@ -118,8 +118,8 @@ def fit_lstm(model, train, val_X, val_y, batch, n_epochs, n_neurons, lags, n_fea
         #model.add(Dense(5,activation='tanh'))
         #model.add(Dropout(0.5))
         model.add(Dense(1))
-        adam = optimizers.Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=lrd)#epsilon=1e-08
-        model.compile(loss='mean_squared_error', optimizer=adam)
+    adam = optimizers.Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=lrd)#epsilon=1e-08
+    model.compile(loss='mean_squared_error', optimizer=adam)
 
     history = model.fit(train_X, train_y, epochs=n_epochs,
                   validation_data=(val_X, val_y),
