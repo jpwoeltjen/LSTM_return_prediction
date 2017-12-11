@@ -100,7 +100,7 @@ def invert_scale(scaler, y):
 
 
     
-def fit_lstm(model, train, val_X, val_y, batch, n_epochs, n_neurons, lags, n_features, breg, kreg, rreg, lr, lrd, do):
+def fit_lstm(model, train, val_X, val_y, batch, n_epochs, n_neurons, layers, lstm_layers, lags, n_features, breg, kreg, rreg, lr, lrd, do):
     n_obs = lags * n_features
     train_X, train_y = train[:, :n_obs], train[:, -1]
     train_X = train_X.reshape((train_X.shape[0], lags, n_features))
@@ -108,18 +108,28 @@ def fit_lstm(model, train, val_X, val_y, batch, n_epochs, n_neurons, lags, n_fea
     # design network
     if model == None:
         model = Sequential()
-        model.add(LSTM(n_neurons, activation='sigmoid',inner_activation='sigmoid', input_shape=(train_X.shape[1], train_X.shape[2]), bias_regularizer=breg,kernel_regularizer=kreg, recurrent_regularizer=rreg, recurrent_dropout=0.0))
+        if lstm_layers == 1:
+            model.add(LSTM(n_neurons, activation='sigmoid', inner_activation='sigmoid', input_shape=(train_X.shape[1], train_X.shape[2]), bias_regularizer=breg, kernel_regularizer=kreg, recurrent_regularizer=rreg, recurrent_dropout=0.0))#, return_sequences=True))
+            model.add(Dropout(do))
+        elif lstm_layers >1:
+            model.add(LSTM(n_neurons, activation='sigmoid', inner_activation='sigmoid', input_shape=(train_X.shape[1], train_X.shape[2]), bias_regularizer=breg, kernel_regularizer=kreg, recurrent_regularizer=rreg, recurrent_dropout=0.0, return_sequences=True))
+            for i in range(lstm_layers-2):
+                # You may add further layers
+                model.add(LSTM(n_neurons, return_sequences=True))
+                model.add(Dropout(do))
+            model.add(LSTM(n_neurons))
+            model.add(Dropout(do))
+
+        for i in range(layers):    
+            model.add(Dense(n_neurons, activation='sigmoid'))
+            model.add(Dropout(do))   
+        
         model.add(Dropout(do))
-        # You may add further layers
-        #model.add(Dense(25,activation='relu'))
-        #model.add(Dropout(0.5))
-        #model.add(Dense(10,activation='sigmoid'))
-        #model.add(Dropout(0.5))
-        #model.add(Dense(5,activation='tanh'))
-        #model.add(Dropout(0.5))
         model.add(Dense(1))
-    adam = optimizers.Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=lrd)#epsilon=1e-08
-    model.compile(loss='mean_squared_error', optimizer=adam)
+        
+    adam = optimizers.Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=lrd)
+    nadam = optimizers.Nadam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, schedule_decay=0.004)
+    model.compile(loss='mean_squared_error', optimizer=nadam)
 
     history = model.fit(train_X, train_y, epochs=n_epochs,
                   validation_data=(val_X, val_y),
@@ -129,7 +139,7 @@ def fit_lstm(model, train, val_X, val_y, batch, n_epochs, n_neurons, lags, n_fea
                     )
     return model, history
 
-def validate(model, dataset,train_pct, val_pct, lags, n_repeats, n_epochs, batch, n_neurons, n_features, breg, kreg, rreg, lr, lrd, do, scaling_method,p_out):
+def validate(model, dataset, train_pct, val_pct, lags, n_repeats, n_epochs, batch, n_neurons, layers, lstm_layers, n_features, breg, kreg, rreg, lr, lrd, do, scaling_method, p_out):
     n_obs = lags * n_features
     dataset_returns = pd.DataFrame(dataset)
     dataset_returns = get_returns(dataset_returns)#, columns=[1,2,3,4,9,10,11,12,13,14,15])
@@ -151,7 +161,7 @@ def validate(model, dataset,train_pct, val_pct, lags, n_repeats, n_epochs, batch
     val_loss = pd.DataFrame()
     for r in range(n_repeats):
         # fit the model
-        lstm_model, history = fit_lstm(model, train, val_X_reshaped, val_y, batch, n_epochs, n_neurons, lags, n_features, breg, kreg, rreg, lr, lrd, do)
+        lstm_model, history = fit_lstm(model, train, val_X_reshaped, val_y, batch, n_epochs, n_neurons, layers, lstm_layers, lags, n_features, breg, kreg, rreg, lr, lrd, do)
         # forecast val dataset
         yhat = lstm_model.predict(val_X_reshaped, batch_size=batch)
         # invert scaling
